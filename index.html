@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>M-EI HO 2.26.41.4</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0b141a;color:#e9edef;font-family:system-ui,sans-serif;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+#splash{position:fixed;inset:0;background:#0b141a;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity.5s}
+#splash.hide{opacity:0;pointer-events:none}
+.bigM{width:110px;height:110px;background:#25D366;border-radius:26px;display:flex;align-items:center;justify-content:center;font-size:68px;font-weight:900;color:#0b141a;box-shadow:0 8px 30px rgba(37,211,102,.4)}
+.top{height:59px;background:#202c33;display:flex;align-items:center;justify-content:space-between;padding:0 16px}
+.mini{width:34px;height:34px;background:#25D366;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#0b141a;font-size:19px}
+.page{display:none;flex:1;overflow-y:auto;background:#111b21;padding-bottom:80px}
+.page.active{display:block}
+.row{display:flex;gap:12px;padding:12px 14px;align-items:center;cursor:pointer}
+.row:active{background:#202c33}
+.ava{width:50px;height:50px;border-radius:50%;background:#2a3942;display:flex;align-items:center;justify-content:center;font-weight:800}
+.ava.m{background:#25D366;color:#0b141a;font-size:22px}
+.meta-check{width:14px;height:14px;background:#25D366;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-left:4px}
+.meta-check span{color:#111b21;font-size:9px;font-weight:900}
+.bottom{position:fixed;bottom:0;left:0;right:0;height:70px;background:#202c33;display:flex;border-top:1px solid #2f3d45;z-index:100}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#8696a0;gap:2px;cursor:pointer}
+.tab.active{color:#e9edef}
+.tab svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8}
+.tab.active svg{stroke-width:2.3}
+.tab span{font-size:11px}
+.fab{position:fixed;right:16px;bottom:84px;width:54px;height:54px;background:#25D366;border-radius:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(0,0,0,.5);cursor:pointer;z-index:90;color:#0b141a;font-size:24px;font-weight:700}
+#chatBox{position:fixed;inset:0;background:#0b141a;z-index:500;display:none;flex-direction:column}
+#chatBox.open{display:flex}
+.cHead{height:59px;background:#202c33;display:flex;align-items:center;gap:12px;padding:0 12px}
+.msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:6px}
+.bubble{max-width:75%;padding:7px 10px;border-radius:8px;font-size:14.5px}
+.bubble.other{background:#202c33;align-self:flex-start;border-top-left-radius:0}
+.bubble.me{background:#005c4b;align-self:flex-end;border-top-right-radius:0}
+.bar{display:flex;gap:8px;padding:8px;background:#202c33}
+.bar input{flex:1;background:#2a3942;border:none;border-radius:20px;padding:11px 14px;color:#fff;outline:none}
+.send{width:45px;height:45px;background:#25D366;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#0b141a;cursor:pointer}
+.proInput{width:100%;background:#202c33;border:none;padding:12px;border-radius:10px;color:#fff;margin-top:8px;outline:none}
+</style>
+</head>
+<body>
+<div id="splash"><div class="bigM">M</div><div style="margin-top:18px;font-size:26px;font-weight:800">M-EI HO</div><div style="color:#8696a0;font-size:13px;margin-top:6px">Version 2.26.41.4</div><div style="margin-top:30px;width:34px;height:34px;border:3px solid #202c33;border-top:3px solid #25D366;border-radius:50%;animation:spin 1s linear infinite"></div><style>@keyframes spin{to{transform:rotate(360deg)}}</style></div>
+
+<div class="top"><h1><div class="mini">M</div> M-EI HO</h1><div style="display:flex;gap:18px"><span>🔍</span><span>⋮</span></div></div>
+
+<div id="pChats" class="page active">
+<div class="row" onclick="openChat()"><div class="ava m">M</div><div style="flex:1"><div style="font-size:16px;font-weight:500;display:flex;align-items:center">M-EI HO Official <div class="meta-check"><span>✓</span></div></div><div style="color:#8696a0;font-size:13.5px;margin-top:2px"><span style="color:#53bdeb">✓✓</span> Bienvenue sur M-EI HO 2.26.41.4</div></div><div style="margin-left:auto;text-align:right"><div style="font-size:11px;color:#25D366">14:23</div><div style="background:#25D366;color:#0b141a;font-size:11px;font-weight:700;padding:2px 6px;border-radius:10px;margin-top:4px;display:inline-block">1</div></div></div>
+<div id="extraChats"></div>
+</div>
+
+<div id="pActus" class="page"><div style="padding:14px"><div style="display:flex;gap:12px;align-items:center"><div style="width:52px;height:52px;border-radius:50%;border:2px dashed #25D366;display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer" onclick="publishStory()">+</div><div><b>Ma story</b><div style="color:#8696a0;font-size:13px">Publie ton Actus</div></div></div><div id="storyList" style="margin-top:20px"></div></div></div>
+
+<div id="pCommu" class="page"><div style="padding:30px;text-align:center;color:#8696a0">Communautés</div></div>
+
+<div id="pProfil" class="page">
+<div style="padding:20px"><div style="text-align:center"><div id="myAva" style="width:90px;height:90px;border-radius:50%;background:#25D366;color:#0b141a;font-size:40px;font-weight:900;display:flex;align-items:center;justify-content:center;margin:0 auto">M</div><div style="margin-top:12px;color:#25D366;cursor:pointer;font-size:13px" onclick="changeAva()">Modifier photo</div></div>
+<div style="margin-top:24px"><label style="color:#8696a0;font-size:12px">Nom</label><input id="myName" class="proInput" value="M-EI HO User" oninput="saveP()"></div>
+<div style="margin-top:16px"><label style="color:#8696a0;font-size:12px">À propos</label><input id="myAbout" class="proInput" value="Disponible" oninput="saveP()"></div>
+<div style="margin-top:20px;background:#202c33;padding:12px;border-radius:10px"><div style="font-size:13px">M-EI HO</div><div style="color:#8696a0;font-size:12px;margin-top:4px">Version 2.26.41.4 • Légère 8.5MB • Comme WhatsApp</div></div>
+</div>
+</div>
+
+<div class="fab" onclick="newChat()">✎</div>
+
+<div class="bottom">
+<div class="tab active" data-p="pChats"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-12.5 7.5L3 21l2-5.5A8.5 8.5 0 0 1 21 11.5z"/></svg><span>Discussions</span></div>
+<div class="tab" data-p="pActus"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg><span>Actus</span></div>
+<div class="tab" data-p="pCommu"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><span>Communautés</span></div>
+<div class="tab" data-p="pProfil"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Profil</span></div>
+</div>
+
+<div id="chatBox"><div class="cHead"><span style="font-size:22px;cursor:pointer" onclick="closeChat()">←</span><div class="ava m" style="width:38px;height:38px">M</div><div style="flex:1"><div style="font-weight:700;display:flex;align-items:center">M-EI HO Official <div class="meta-check" style="margin-left:5px"><span>✓</span></div></div><div style="font-size:11px;color:#8696a0">en ligne • v2.26.41.4</div></div></div><div class="msgs" id="msgs"><div class="bubble other">Bienvenue sur M-EI HO v2.26.41.4 🟩<br>Même version que WhatsApp mais léger 8.5MB!</div></div><div class="bar"><input id="inp" placeholder="Message"><div class="send" onclick="sendMsg()">➤</div></div></div>
+
+<script>
+setTimeout(()=>document.getElementById('splash').classList.add('hide'),2000);
+function openChat(){document.getElementById('chatBox').classList.add('open')}
+function closeChat(){document.getElementById('chatBox').classList.remove('open')}
+function sendMsg(){let i=document.getElementById('inp');if(!i.value.trim())return;let b=document.createElement('div');b.className='bubble me';b.textContent=i.value;msgs.appendChild(b);i.value='';msgs.scrollTop=99999;setTimeout(()=>{let r=document.createElement('div');r.className='bubble other';r.textContent='Reçu ✓✓';msgs.appendChild(r);msgs.scrollTop=99999},600)}
+function newChat(){let n=prompt('Nom ami:');if(!n)return;let d=document.createElement('div');d.className='row';d.onclick=openChat;d.innerHTML='<div class="ava">'+n[0].toUpperCase()+'</div><div style="flex:1"><div style="font-weight:500">'+n+'</div><div style="color:#8696a0;font-size:13px">Salut!</div></div>';extraChats.prepend(d)}
+function publishStory(){let t=prompt('Publie ton Actus:');if(!t)return;let s=document.createElement('div');s.style.cssText='background:#202c33;padding:12px;border-radius:12px;margin-bottom:10px';s.innerHTML='<div><b>'+myName.value+'</b> • maintenant<div style="margin-top:6px">'+t+'</div></div>';storyList.prepend(s)}
+function changeAva(){let e=prompt('Lettre photo:');if(e)myAva.textContent=e[0].toUpperCase();saveP()}
+function saveP(){localStorage.setItem('mName',myName.value)}
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(t.dataset.p).classList.add('active')})
+</script>
+</body>
+</html>
