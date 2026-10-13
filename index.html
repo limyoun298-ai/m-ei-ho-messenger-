@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>M-EI HO 2.26.41.4</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0b141a;color:#e9edef;font-family:system-ui,sans-serif;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+#splash{position:fixed;inset:0;background:#0b141a;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:.5s}
+#splash.hide{opacity:0;pointer-events:none}
+.bigM{width:120px;height:120px;background:#25D366;border-radius:28px;display:flex;align-items:center;justify-content:center;font-size:74px;font-weight:900;color:#0b141a}
+.top{height:60px;background:#202c33;display:flex;align-items:center;justify-content:space-between;padding:0 16px}
+.page{display:none;flex:1;overflow-y:auto;background:#111b21;padding-bottom:80px}
+.page.active{display:block}
+.meta-check{width:14px;height:14px;background:#25D366;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-left:5px}
+.meta-check span{color:#0b141a;font-size:9px;font-weight:900}
+.row{display:flex;gap:12px;padding:12px 14px;align-items:center;cursor:pointer;border-bottom:1px solid #1f2c34}
+.ava{width:50px;height:50px;border-radius:50%;background:#2a3942;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;overflow:hidden;background-size:cover}
+.ava.m{background:#25D366;color:#0b141a}
+.bottom{position:fixed;bottom:0;left:0;right:0;height:74px;background:#202c33;display:flex;border-top:1px solid #2a3942;z-index:100}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#8696a0;gap:3px;cursor:pointer}
+.tab.active{color:#fff}
+.tab svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:1.7}
+.fab{position:fixed;right:18px;bottom:92px;width:56px;height:56px;background:#25D366;border-radius:16px;display:flex;align-items:center;justify-content:center;color:#0b141a;font-size:26px;font-weight:700;box-shadow:0 6px 16px rgba(0,0,0,.5);cursor:pointer;z-index:90}
+.input{width:100%;background:#202c33;border:none;padding:14px;border-radius:10px;color:#fff;margin-top:10px;outline:none;font-size:16px}
+.btn{width:100%;background:#25D366;color:#0b141a;border:none;padding:14px;border-radius:10px;font-weight:800;margin-top:12px;font-size:16px;cursor:pointer}
+.bubble{max-width:78%;padding:8px 11px;border-radius:8px;font-size:14.8px}
+.bubble.me{background:#005c4b;align-self:flex-end}
+.bubble.other{background:#202c33;align-self:flex-start}
+.proInput{width:100%;background:#202c33;border:none;padding:13px;border-radius:10px;color:#fff;margin-top:8px;outline:none}
+</style>
+</head>
+<body>
+<div id="splash"><div class="bigM">M</div><div style="margin-top:20px;font-size:28px;font-weight:800">M-EI HO</div><div style="color:#8696a0;font-size:13px;margin-top:6px">Messenger • v2.26.41.4 • Noir 🌑</div></div>
+<div class="top"><div style="display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px;background:#25D366;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#0b141a">M</div><b>M-EI HO</b></div><div>🔍 ⋮</div></div>
+
+<div id="pAuth" class="page active" style="padding
