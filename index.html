@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>M-EI HO REAL</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>:root{--bg:#0b141a;--bar:#202c33;--page:#111b21;--muted:#8696a0;--green:#25D366;--sent:#005c4b}*{box-sizing:border-box;margin:0;padding:0}body{height:100dvh;background:var(--bg);color:#e9edef;font-family:system-ui;display:flex;flex-direction:column}#splash{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;transition:.4s}#splash.hide{opacity:0;pointer-events:none}.bigM{width:120px;height:120px;border-radius:28px;background:var(--green);display:grid;place-items:center;color:#0b141a;font-size:74px;font-weight:900}header{height:60px;background:var(--bar);display:flex;align-items:center;padding:0 15px}.page{display:none;flex:1;overflow:auto;background:var(--page);padding-bottom:80px}.page.active{display:block}.row{display:flex;gap:12px;padding:12px 15px;border-bottom:1px solid #222f35;cursor:pointer}.ava{width:50px;height:50px;border-radius:50%;background:#2a3942;display:grid;place-items:center;font-weight:800}.bottom{position:fixed;bottom:0;left:0;right:0;height:74px;background:var(--bar);display:flex}.tab{flex:1;display:flex;align-items:center;justify-content:center;color:var(--muted)}.tab.active{color:#fff}.field{width:100%;margin-top:9px;padding:14px;background:var(--bar);border:1px solid #2a3942;border-radius:12px;color:#fff}.btn{width:100%;margin-top:12px;padding:14px;border:0;border-radius:12px;background:var(--green);color:#0b141a;font-weight:800}#chat{position:fixed;inset:0;background:var(--page);z-index:20;display:none;flex-direction:column}#chat.open{display:flex}.bubble{max-width:78%;padding:9px 12px;border-radius:10px;margin:4px 0}.bubble.me{align-self:flex-end;background:var(--sent)}.bubble.other{align-self:flex-start;background:var(--bar)}</style></head><body>
+<div id="splash"><div class="bigM">M</div><div style="margin-top:18px;font-weight:800;font-size:26px">M-EI HO</div><div style="color:var(--muted)">v2.26.41.5 FIX</div></div>
+<header><div style="display:flex;gap:10px;align-items:center"><div style="width:36px;height:36px;background:var(--green);border-radius:9px;display:grid;place-items:center;color:#0b141a;font-weight:900">M</div><b>M-EI HO REAL</b></div></header>
+<div id="pAuth" class="page active" style="padding:24px"><div class="bigM" style="margin:20px auto">M</div><h2 style="text-align:center">Connexion Réelle</h2><input id="loginName" class="field" placeholder="Ton nom"><input id="loginPhone" class="field" type="tel" placeholder="+243..."><input id="loginPass" class="field" type="password" placeholder="Mot de passe"><button class="btn" onclick="realLogin()">Se connecter</button><div id="status" style="margin-top:12px;text-align:center;color:var(--green)"></div><div id="err" style="margin-top:12px;color:#ff6b6b;text-align:center;font-size:12px"></div></div>
+<div id="pChats" class="page"><div id="chatList"></div></div>
+<div class="bottom"><div class="tab active">Discussions</div></div>
+<div id="chat"><div style="height:60px;background:var(--bar);display:flex;align-items:center;gap:10px;padding:0 12px"><span onclick="closeChat()">←</span><div class="ava" id="chatAva">M</div><div id="chatName" style="font-weight:700"></div></div><div id="msgs" style="flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column"></div><div style="display:flex;gap:8px;padding:8px;background:var(--bar)"><input id="inp" placeholder="Message" style="flex:1;background:#111b21;border:none;border-radius:22px;padding:12px;color:#fff"><button onclick="sendReal()" style="width:46px;height:46px;background:var(--green);border-radius:50%;border:0">➤</button></div></div>
+<script>
+const SUPA_URL='https://zcmzpkdgxteouditmmud.supabase.co';const SUPA_KEY='sb_publishable_1xpejlLbOmcq3uHNm3jiMw_LdAV8hYC';
+let supa=supabase.createClient(SUPA_URL,SUPA_KEY);
+let me=null,cur=null;
+setTimeout(()=>document.getElementById('splash').classList.add('hide'),1000);
+async function realLogin(){
+ try{
+ let name=document.getElementById('loginName').value.trim();
+ let phone=document.getElementById('loginPhone').value.trim();
+ let pass=document.getElementById('loginPass').value.trim();
+ if(!name||!phone||!pass){alert('Remplis nom + phone + pass');return}
+ document.getElementById('status').textContent='Connexion...';
+ let {data,error}=await supa.from('users').select('*').eq('phone',phone).maybeSingle();
+ if(error) throw error;
+ if(!data){
+  let {data:newU,error:insErr}=await supa.from('users').insert({full_name:name,phone:phone,password:pass}).select().single();
+  if(insErr) throw insErr;
+  data=newU;
+ }
+ me=data;localStorage.setItem('meiho-me',JSON.stringify(me));
+ document.getElementById('pAuth').classList.remove('active');document.getElementById('pChats').classList.add('active');
+ document.getElementById('status').textContent='Connecté ✓ '+me.full_name;
+ loadChats();
+ }catch(e){document.getElementById('err').textContent=e.message;console.error(e)}
+}
+async function loadChats(){let {data,error}=await supa.from('users').select('*').neq('phone',me.phone);if(error){document.getElementById('err').textContent=error.message;return}let html='';(data||[]).forEach(p=>{html+=`<div class=row onclick="openReal('${p.phone}','${p.full_name}')"><div class=ava>${p.full_name[0]}</div><div><b>${p.full_name}</b><div style=color:#8696a0>${p.phone}</div></div></div>`});document.getElementById('chatList').innerHTML=html||='Aucun utilisateur'}
+async function openReal(ph,na){cur=ph;document.getElementById('chat').classList.add('open');document.getElementById('chatName').textContent=na;loadMsgs()}
+async function loadMsgs(){if(!cur) return;let {data}=await supa.from('messages').select('*').or(`and(sender_phone.eq.${me.phone},receiver_phone.eq.${cur}),and(sender_phone.eq.${cur},receiver_phone.eq.${me.phone})`).order('id',{ascending:true});let box=document.getElementById('msgs');box.innerHTML='';(data||[]).forEach(m=>{let d=document.createElement('div');d.className='bubble '+(m.sender_phone===me.phone?'me':'other');d.textContent=m.content;box.appendChild(d)});box.scrollTop=box.scrollHeight}
+async function sendReal(){let t=document.getElementById('inp').value.trim();if(!t||!cur) return;await supa.from('messages').insert({sender_phone:me.phone,receiver_phone:cur,content:t});document.getElementById('inp').value='';loadMsgs()}
+function closeChat(){document.getElementById('chat').classList.remove('open')}
+let saved=localStorage.getItem('meiho-me');if(saved){me=JSON.parse(saved);document.getElementById('pAuth').classList.remove('active');document.getElementById('pChats').classList.add('active');loadChats()}
+</script></body></html>
