@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>M-EI HO - WhatsApp</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- HEADER WHATSAPP VERT -->
+<header id="wa-header">
+  <div class="header-left">
+    <div id="logo-m">M</div>
+    <h1>M-EI HO</h1>
+  </div>
+  <div class="header-right">
+    <button class="icon-btn">🔍</button>
+    <button class="icon-btn">📷</button>
+    <button class="icon-btn">⋮</button>
+  </div>
+</header>
+
+<!-- TABS WHATSAPP -->
+<nav id="wa-tabs">
+  <div class="tab" onclick="setTab('commu')">👥</div>
+  <div class="tab active" onclick="setTab('disc')">Disc. <span class="badge">3</span></div>
+  <div class="tab" onclick="setTab('actu')">Actus</div>
+  <div class="tab" onclick="setTab('appels')">Appels</div>
+</nav>
+
+<!-- APP -->
+<main id="main">
+  <!-- LOGIN -->
+  <div id="login-page">
+    <div class="login-card">
+      <div id="big-logo">M</div>
+      <h2>M-EI HO Messenger</h2>
+      <p>Comme WhatsApp avec coche bleue 🔵</p>
+      <input id="phone" placeholder="Téléphone +243...">
+      <input id="password" type="password" placeholder="Mot de passe">
+      <button onclick="login()">Se connecter</button>
+      <span class="link" onclick="showRegister()">Créer compte</span>
+    </div>
+    <div class="login-card hidden" id="register-card">
+      <h2>Créer compte</h2>
+      <input id="reg-name" placeholder="Nom complet">
+      <input id="reg-phone" placeholder="Téléphone +243...">
+      <input id="reg-pass" type="password" placeholder="Mot de passe">
+      <button onclick="register()">S'inscrire</button>
+      <span class="link" onclick="showLogin()">Déjà compte?</span>
+    </div>
+  </div>
+
+  <!-- CHAT LIST + CHAT -->
+  <div id="app-page" class="hidden">
+    <div id="sidebar">
+      <div id="chat-list"></div>
+      <button id="new-chat-btn">💬</button>
+    </div>
+    <div id="chat-area">
+      <div id="chat-header">
+        <div class="avatar" id="chat-avatar">?</div>
+        <div class="chat-info">
+          <div id="chat-name">Choisis un chat</div>
+          <div id="chat-status">en ligne</div>
+        </div>
+      </div>
+      <div id="messages"></div>
+      <div id="input-bar">
+        <button class="icon-btn">😊</button>
+        <input id="msg-input" placeholder="Message" onkeydown="if(event.key==='Enter')sendMsg()">
+        <button class="icon-btn" onclick="sendMsg()">➤</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
+</body>
+</html>
