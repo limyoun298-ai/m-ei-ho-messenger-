@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0866ff">
+<title>M-EI HO Messenger</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f0f2f5;color:#18191a}
+button,input{font:inherit}
+button{cursor:pointer;border:0;border-radius:8px;padding:12px;background:#0866ff;color:white;font-weight:bold}
+input{width:100%;padding:13px;border:1px solid #ddd;border-radius:8px;margin:7px 0}
+header{background:#fff;padding:15px 20px;box-shadow:0 1px 4px #ccc;display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:23px;font-weight:bold;color:#0866ff}
+#auth{max-width:420px;margin:45px auto;background:white;padding:24px;border-radius:12px}
+#app{display:none;max-width:1000px;margin:20px auto;background:white;height:80vh;min-height:500px;border-radius:12px;overflow:hidden}
+.layout{display:grid;grid-template-columns:300px 1fr;height:100%}
+.sidebar{border-right:1px solid #eee;overflow:auto}
+.person{padding:15px;border-bottom:1px solid #eee;cursor:pointer}
+.person:hover{background:#f0f2f5}
+.person.active{background:#e7f3ff}
+.chat{display:flex;flex-direction:column;min-width:0}
+.chathead{padding:15px;border-bottom:1px solid #eee;font-weight:bold}
+#messages{padding:15px;flex:1;overflow:auto;display:flex;flex-direction:column;gap:10px}
+.bubble{padding:10px 13px;border-radius:15px;max-width:80%;overflow-wrap:anywhere;background:#e4e6eb;align-self:flex-start}
+.bubble.mine{background:#0866ff;color:white;align-self:flex-end}
+.send{display:flex;padding:12px;gap:8px;border-top:1px solid #eee}
+.send input{margin:0}
+.send button{white-space:nowrap}
+.muted{color:#65676b;font-size:13px}
+.error{color:#d93025;font-size:14px;white-space:pre-wrap}
+@media(max-width:600px){
+#app{margin:0;height:calc(100dvh - 60px);min-height:0;border-radius:0}
+.layout{grid-template-columns:110px 1fr}
+.person{padding:12px 7px;font-size:13px;overflow-wrap:anywhere}
+header{padding:12px}
+#auth{margin:20px 12px}
+}
+</style>
+</head>
+<body>
+<header>
+ <div class="logo">M-EI HO 💬</div>
+ <button id="logout" style="display:none" onclick="logout()">Déconnexion</button>
+</header>
+
+<section id="auth">
+ <h2 id="authTitle">Bienvenue sur M-EI HO</h2>
+ <p class="muted">Connecte-toi pour discuter avec tes amis.</p>
+ <input id="name" placeholder="Nom complet (inscription)" autocomplete="name">
+ <input id="email" type="email" placeholder="Adresse e-mail" autocomplete="email">
+ <input id="password" type="password" placeholder="Mot de passe" autocomplete="current-password">
+ <button id="submit" style="width:100%" onclick="authenticate()">Créer mon compte</button>
+ <p><button id="switch" style="background:#42b72a;width:100%" onclick="toggleMode()">J'ai déjà un compte</button></p>
+ <p id="status" class="error"></p>
+</section>
+
+<section id="app">
+ <div class="layout">
+  <aside class="sidebar">
+   <div style="padding:12px;font-weight:bold">Discussions</div>
+   <input id="search" placeholder="Rechercher..." style="width:90%;margin:5%" oninput="filterUsers()">
+   <div id="users"></div>
+  </aside>
+  <main class="chat">
+   <div class="chathead" id="chatTitle">Choisis un utilisateur</div>
+   <div id="messages"><p class="muted">Tes conversations apparaîtront ici.</p></div>
+   <form class="send" onsubmit="sendMessage(event)">
+    <input id="message" placeholder="Écris un message..." autocomplete="off" disabled>
+    <button id="sendBtn" disabled>Envoyer</button>
+   </form>
+  </main>
+ </div>
+</section>
+
+<script>
+/*
+  REMPLACE CES DEUX VALEURS PAR CELLES DE TON PROJET SUPABASE.
+  Utilise uniquement la clé publishable/anon, jamais une clé secrète
+  ou une clé service_role dans le navigateur.
+*/
+const SUPABASE_URL = "COLLE_ICI_URL_SUPABASE";
+const SUPABASE_KEY = "COLLE_ICI_CLE_PUBLISHABLE";
+
+let db = null;
+let currentUser = null;
+let selectedUser = null;
+let allUsers = [];
+let signupMode = true;
+let messageChannel = null;
+
+const $ = id => document.getElementById(id);
+
+function setStatus(text=""){ $("status").textContent=text; }
+
+function ready(){
+ if(!window.supabase){
+  setStatus("Impossible de charger Supabase. Vérifie ta connexion Internet.");
+  return false;
+ }
+ if(SUPABASE_URL.includes("COLLE_ICI") ||
+    SUPABASE_KEY.includes("COLLE_ICI")){
+  setStatus("Configure d'abord l'URL et la clé Supabase dans le code.");
+  return false;
+ }
+ if(!db){
+  db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+ }
+ return true;
+}
+
+function toggleMode(){
+ signupMode=!signupMode;
+ $("authTitle").textContent=signupMode?"Créer un compte":"Connexion";
+ $("submit").textContent=signupMode?"Créer mon compte":"Se connecter";
+ $("switch").textContent=signupMode?"J'ai déjà un compte":"Créer un nouveau compte";
+ $("name").style.display=signupMode?"block":"none";
+ $("password").autocomplete=signupMode?"new-password":"current-password";
+ setStatus("");
+}
+
+async function authenticate(){
+ if(!ready()) return;
+ setStatus("");
+ const email=$("email").value.trim();
+ const password=$("password").value;
+ const name=$("name").value.trim();
+
+ if(!email || !password || (signupMode && !name)){
+  setStatus("Remplis tous les champs obligatoires.");
+  return;
+ }
+ if(password.length<6){
+  setStatus("Le mot de passe doit contenir au moins 6 caractères.");
+  return;
+ }
+
+ $("submit").disabled=true;
+ try{
+  if(signupMode){
+   const {data,error}=await db.auth.signUp({
+    email,password,
+    options:{data:{full_name:name}}
+   });
+   if(error) throw error;
+
+   if(!data.session){
+    setStatus("Compte créé ! Vérifie ton e-mail pour confirmer l'inscription, puis connecte-toi.");
+    return;
+   }
+  }else{
+   const {error}=await db.auth.signInWithPassword({email,password});
+   if(error) throw error;
+  }
+  await loadApp();
+ }catch(e){
+  setStatus(e.message||"Une erreur est survenue.");
+ }finally{
+  $("submit").disabled=false;
+ }
+}
+
+async function loadApp(){
+ if(!ready()) return;
+ const {data,error}=await db.auth.getSession();
+ if(error) throw error;
+ currentUser=data.session?.user;
+ if(!currentUser){
+  $("auth").style.display="block";
+  $("app").style.display="none";
+  $("logout").style.display="none";
+  return;
+ }
+
+ $("auth").style.display="none";
+ $("app").style.display="block";
+ $("logout").style.display="block";
+ await loadUsers();
+}
+
+async function logout(){
+ if(!ready()) return;
+ if(messageChannel) await db.removeChannel(messageChannel);
+ await db.auth.signOut();
+ currentUser=null;
+ selectedUser=null;
+ $("app").style.display="none";
+ $("auth").style.display="block";
+ $("logout").style.display="none";
+ setStatus("Tu es déconnecté.");
+}
+
+async function loadUsers(){
+ const {data,error}=await db.from("users")
+  .select("id,full_name,email,avatar_url")
+  .neq("id",currentUser.id)
+  .order("full_name");
+ if(error){
+  $("users").textContent="Erreur de chargement des utilisateurs.";
+  console.error(error);
+  return;
+ }
+ allUsers=data||[];
+ renderUsers(allUsers);
+}
+
+function filterUsers(){
+ const q=$("search").value.toLowerCase();
+ renderUsers(allUsers.filter(u=>
+  (u.full_name||"").toLowerCase().includes(q)||
+  (u.email||"").toLowerCase().includes(q)
+ ));
+}
+
+function renderUsers(list){
+ $("users").innerHTML="";
+ if(!list.length){
+  $("users").innerHTML='<p class="muted" style="padding:10px">Aucun utilisateur trouvé.</p>';
+  return;
+ }
+ list.forEach(u=>{
+  const el=document.createElement("div");
+  el.className="person"+(selectedUser?.id===u.id?" active":"");
+  el.textContent=u.full_name||u.email||"Utilisateur";
+  el.onclick=()=>openChat(u);
+  $("users").appendChild(el);
+ });
+}
+
+async function openChat(user){
+ selectedUser=user;
+ $("chatTitle").textContent=user.full_name||user.email||"Discussion";
+ $("message").disabled=false;
+ $("sendBtn").disabled=false;
+ renderUsers(allUsers);
+ await loadMessages();
+ if(messageChannel) await db.removeChannel(messageChannel);
+
+ messageChannel=db.channel("chat-"+[currentUser.id,user.id].sort().join("-"))
+  .on("postgres_changes",{
+   event:"INSERT",schema:"public",table:"messages"
+  },payload=>{
+   const m=payload.new;
+   if((m.sender_id===currentUser.id&&m.receiver_id===selectedUser?.id)||
+      (m.sender_id===selectedUser?.id&&m.receiver_id===currentUser.id)){
+    loadMessages();
+   }
+  }).subscribe();
+}
+
+async function loadMessages(){
+ if(!selectedUser) return;
+ const other=selectedUser.id;
+ const {data,error}=await db.from("messages")
+  .select("id,sender_id,receiver_id,content,created_at")
+  .or(
+   `and(sender_id.eq.${currentUser.id},receiver_id.eq.${other}),and(sender_id.eq.${other},receiver_id.eq.${currentUser.id})`
+  )
+  .order("created_at",{ascending:true})
+  .limit(200);
+
+ if(error){
+  $("messages").textContent="Impossible de charger les messages. Vérifie les colonnes et les règles RLS.";
+  console.error(error);
+  return;
+ }
+ $("messages").innerHTML="";
+ (data||[]).forEach(m=>{
+  const el=document.createElement("div");
+  el.className="bubble"+(m.sender_id===currentUser.id?" mine":"");
+  el.textContent=m.content||"";
+  $("messages").appendChild(el);
+ });
+ $("messages").scrollTop=$("messages").scrollHeight;
+}
+
+async function sendMessage(event){
+ event.preventDefault();
+ if(!selectedUser) return;
+ const content=$("message").value.trim();
+ if(!content) return;
+ $("sendBtn").disabled=true;
+ try{
+  const {error}=await db.from("messages").insert({
+   sender_id:currentUser.id,
+   receiver_id:selectedUser.id,
+   content
+  });
+  if(error) throw error;
+  $("message").value="";
+  await loadMessages();
+ }catch(e){
+  alert("Message non envoyé : "+e.message);
+ }finally{
+  $("sendBtn").disabled=false;
+ }
+}
+
+async function start(){
+ if(!ready()) return;
+ const {data:{subscription}}=db.auth.onAuthStateChange(()=>{
+  setTimeout(()=>loadApp().catch(e=>setStatus(e.message)),0);
+ });
+ try{await loadApp();}catch(e){setStatus(e.message);}
+}
+start();
+</script>
+</body>
+</html>
